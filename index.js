@@ -18,13 +18,33 @@ const databaseURL = process.env.DATABASE_URL;
 const server = http.createServer(app);
 
 
+// app.use(
+//     cors({
+//         origin: process.env.ORIGIN,
+//         methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
+//         credentials: true
+//     })
+// );
+
+const allowedOrigins = [
+    "http://localhost:5173",
+    "https://voxagram-chat-app.vercel.app"
+];
+
 app.use(
     cors({
-        origin: process.env.ORIGIN,
-        methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
-        credentials: true
+        origin: function (origin, callback) {
+            if (!origin || allowedOrigins.includes(origin)) {
+                callback(null, true);
+            } else {
+                callback(new Error("Not allowed by CORS"));
+            }
+        },
+        credentials: true,
+        methods: ["GET", "POST", "PUT", "PATCH", "DELETE"]
     })
 );
+
 
 app.use('/uploads/profiles', express.static('uploads/profiles'));
 app.use('/uploads/files', express.static('uploads/files'));
@@ -40,8 +60,8 @@ app.use("/api/channel", channelRoutes);
 mongoose.connect(databaseURL, {
     dbName: "VOXAGRAM"
 })
-.then(() => console.log("DB Connection successful"))
-.catch(err => console.log(`Some error occurred while connecting to database: ${err}`));
+    .then(() => console.log("DB Connection successful"))
+    .catch(err => console.log(`Some error occurred while connecting to database: ${err}`));
 
 server.listen(port, () => {
     console.log(`Server is running on port ${port}`);
